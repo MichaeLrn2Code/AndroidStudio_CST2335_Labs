@@ -1,6 +1,7 @@
-package algonquin.cst2335.chan0527;
+package ui;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
 import android.view.View;
@@ -9,26 +10,27 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import algonquin.cst2335.chan0527.databinding.ActivityMainBinding;
+import data.MainViewModel;
 
 public class MainActivity extends AppCompatActivity {
-
     private ActivityMainBinding variableBinding;
+    private MainViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        model = new ViewModelProvider(this).get(MainViewModel.class);
+
         variableBinding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(variableBinding.getRoot()); //load XML on screen
 
-        TextView mytext = variableBinding.textview;
-        Button btn = variableBinding.mybutton;
-        EditText myedit = variableBinding.myedittext;
-        String editString = myedit.getText().toString();
-        btn.setOnClickListener((View v)->{
-                mytext.setText( "Your edit text has: " + editString);
+        variableBinding.mybutton.setOnClickListener(click -> {
+            model.editString.postValue(variableBinding.myedittext.getText().toString());
+            model.editString.observe(this, s -> {
+                variableBinding.myText.setText("Your edit text has: " + s);
+            });
         });
+
     }
-
-
 }
