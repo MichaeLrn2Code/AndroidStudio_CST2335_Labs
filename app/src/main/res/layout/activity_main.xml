@@ -30,7 +30,29 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="50dp"
         android:text="@string/button_message">
-
     </Button>
+
+    <CheckBox
+        android:id="@+id/mycheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_question">
+
+    </CheckBox>
+
+    <Switch
+        android:id="@+id/myswitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_question">
+    </Switch>
+
+    <RadioButton
+        android:id="@+id/myradiobtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_question">
+    </RadioButton>
+
 
 </LinearLayout>

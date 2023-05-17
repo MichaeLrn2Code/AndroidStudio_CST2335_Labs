@@ -32,5 +32,26 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
+        model.isSelected.observe(this,selected->{
+            variableBinding.mycheckBox.setChecked(selected);
+            variableBinding.myradiobtn.setChecked(selected);
+            variableBinding.myswitch.setChecked(selected);
+        });
+
+
+        variableBinding.mycheckBox.setOnCheckedChangeListener( (btn, isChecked) -> {
+            model.isSelected.postValue(isChecked);
+        } );
+
+        variableBinding.myswitch.setOnCheckedChangeListener( (btn, isChecked) -> {
+            model.isSelected.postValue(isChecked);
+        } );
+
+        variableBinding.myradiobtn.setOnCheckedChangeListener( (btn, isChecked) -> {
+            model.isSelected.postValue(isChecked);
+        } );
+
+
+
     }
 }
