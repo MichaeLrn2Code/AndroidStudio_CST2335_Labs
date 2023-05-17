@@ -3,11 +3,13 @@ package ui;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import algonquin.cst2335.chan0527.databinding.ActivityMainBinding;
 import data.MainViewModel;
@@ -36,8 +38,14 @@ public class MainActivity extends AppCompatActivity {
             variableBinding.mycheckBox.setChecked(selected);
             variableBinding.myradiobtn.setChecked(selected);
             variableBinding.myswitch.setChecked(selected);
-        });
 
+            Context context = getApplicationContext();
+            CharSequence text = "The value is now: " + selected;
+            int duration = Toast.LENGTH_SHORT;
+
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        });
 
         variableBinding.mycheckBox.setOnCheckedChangeListener( (btn, isChecked) -> {
             model.isSelected.postValue(isChecked);
@@ -51,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
             model.isSelected.postValue(isChecked);
         } );
 
+        variableBinding.myimagebutton.setOnClickListener(click->{
+
+            });
 
 
     }
