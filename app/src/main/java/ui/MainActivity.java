@@ -34,6 +34,18 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
+        variableBinding.mycheckBox.setOnCheckedChangeListener( (btn, isChecked) -> {
+            model.isSelected.postValue(isChecked);
+        } );
+
+        variableBinding.myswitch.setOnCheckedChangeListener( (btn, isChecked) -> {
+            model.isSelected.postValue(isChecked);
+        } );
+
+        variableBinding.myradiobtn.setOnCheckedChangeListener( (btn, isChecked) -> {
+            model.isSelected.postValue(isChecked);
+        } );
+
         model.isSelected.observe(this,selected->{
             variableBinding.mycheckBox.setChecked(selected);
             variableBinding.myradiobtn.setChecked(selected);
@@ -47,20 +59,16 @@ public class MainActivity extends AppCompatActivity {
             toast.show();
         });
 
-        variableBinding.mycheckBox.setOnCheckedChangeListener( (btn, isChecked) -> {
-            model.isSelected.postValue(isChecked);
-        } );
-
-        variableBinding.myswitch.setOnCheckedChangeListener( (btn, isChecked) -> {
-            model.isSelected.postValue(isChecked);
-        } );
-
-        variableBinding.myradiobtn.setOnCheckedChangeListener( (btn, isChecked) -> {
-            model.isSelected.postValue(isChecked);
-        } );
-
         variableBinding.myimagebutton.setOnClickListener(click->{
+            int width = variableBinding.myimagebutton.getWidth();
+            int height = variableBinding.myimagebutton.getHeight();
 
+            Context context = getApplicationContext();
+            CharSequence text = "The width = " + width + " and height = " + height;
+            int duration = Toast.LENGTH_SHORT;
+
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
             });
 
 
