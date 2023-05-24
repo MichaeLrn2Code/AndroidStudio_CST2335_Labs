@@ -51,11 +51,10 @@ public class MainActivity extends AppCompatActivity {
             variableBinding.myradiobtn.setChecked(selected);
             variableBinding.myswitch.setChecked(selected);
 
-            Context context = getApplicationContext();
             CharSequence text = "The value is now: " + selected;
             int duration = Toast.LENGTH_SHORT;
 
-            Toast toast = Toast.makeText(context, text, duration);
+            Toast toast = Toast.makeText(this, text, duration);
             toast.show();
         });
 
@@ -63,11 +62,10 @@ public class MainActivity extends AppCompatActivity {
             int width = variableBinding.myimagebutton.getWidth();
             int height = variableBinding.myimagebutton.getHeight();
 
-            Context context = getApplicationContext();
             CharSequence text = "The width = " + width + " and height = " + height;
             int duration = Toast.LENGTH_SHORT;
 
-            Toast toast = Toast.makeText(context, text, duration);
+            Toast toast = Toast.makeText(this, text, duration);
             toast.show();
             });
 
