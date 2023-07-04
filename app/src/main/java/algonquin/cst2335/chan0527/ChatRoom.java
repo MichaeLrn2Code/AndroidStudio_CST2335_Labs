@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.os.Bundle;
 import android.view.View;
@@ -32,15 +33,20 @@ public class ChatRoom extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        chatModel = new ViewModelProvider(this).get(ChatRoomViewModel.class);
-        messages = chatModel.messages.getValue();
-
-        if(messages == null){
-            chatModel.messages.postValue(messages = new ArrayList<ChatMessage>());
-        }
-
             binding = ActivityChatRoomBinding.inflate(getLayoutInflater());
             setContentView(binding.getRoot());
+
+            chatModel = new ViewModelProvider(this).get(ChatRoomViewModel.class);
+            messages = chatModel.messages.getValue();
+
+            if(messages == null){
+            chatModel.messages.postValue(messages = new ArrayList<ChatMessage>());
+            }
+
+            // Access the database:
+            MessageDatabase db = Room.databaseBuilder(getApplicationContext(), MessageDatabase.class, "MyChatMessageDatabase").build(); //MyChatMessageDatabase is the actual file name in local device
+            ChatMessageDAO myDAO = db.getDAO();
+
 
             // onclickListener for send button
             binding.sendBtn.setOnClickListener(clk->{
@@ -48,7 +54,7 @@ public class ChatRoom extends AppCompatActivity {
 
                 SimpleDateFormat sdf = new SimpleDateFormat("EEEE, dd-MM-yyy hh-mm-ss a");
                 String currentDateandTime = sdf.format(new Date());
-                messages.add(new ChatMessage(binding.chatroomText.getText().toString(),currentDateandTime,true));
+                messages.add(new ChatMessage(binding.chatroomText.getText().toString(),currentDateandTime,0));
 
                 /* notifyItemInserted(int position) function tells the Adapter which row has to be redrawn,
                 whenever the ArrayList changes, have to notify the Adapter object that something has been inserted, or deleted.
@@ -62,7 +68,7 @@ public class ChatRoom extends AppCompatActivity {
             binding.receiveBtn.setOnClickListener(clk->{
                 SimpleDateFormat sdf = new SimpleDateFormat("EEEE, dd-MM-yyy hh-mm-ss a");
                 String currentDateandTime = sdf.format(new Date());
-                messages.add(new ChatMessage(binding.chatroomText.getText().toString(),currentDateandTime,false));
+                messages.add(new ChatMessage(binding.chatroomText.getText().toString(),currentDateandTime,1));
 
                 /* notifyItemInserted(int position) function tells the Adapter which row has to be redrawn,
                 whenever the ArrayList changes, have to notify the Adapter object that something has been inserted, or deleted.
@@ -118,7 +124,7 @@ public class ChatRoom extends AppCompatActivity {
                 public int getItemViewType(int position){
                     // which layout to use for object at position?
                     ChatMessage chatMsg = messages.get(position);
-                    if(chatMsg.getIsSentButton()==true){
+                    if(chatMsg.getIsSentButton()==0){
                         return 0;
                     }else return 1;
                 }
