@@ -3,11 +3,14 @@ package algonquin.cst2335.chan0527;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import android.graphics.ColorSpace;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,6 +54,17 @@ public class ChatRoom extends AppCompatActivity {
             recyclerView = binding.recycleView;
             chatModel = new ViewModelProvider(this).get(ChatRoomViewModel.class);
             messagesList = chatModel.messages.getValue();
+
+            chatModel.selectedMessage.observe(this,(newValue)->{
+                MessageDetailsFragment chatFragment = new MessageDetailsFragment(newValue);
+                getSupportFragmentManager()
+                .beginTransaction()
+                        .replace(R.id.fragmentLocation,chatFragment)
+                        .addToBackStack("Go Back")
+                        .commit();
+            });
+
+
 
             // Access the database:
             MessageDatabase db = Room.databaseBuilder(getApplicationContext(), MessageDatabase.class, "MyChatMessageDatabase").build(); //MyChatMessageDatabase is the actual file name in local device
@@ -193,7 +207,12 @@ public class ChatRoom extends AppCompatActivity {
             timeText = itemView.findViewById(R.id.time);
 
             itemView.setOnClickListener(click->{
-                AlertDialog.Builder builder = new AlertDialog.Builder( ChatRoom.this );
+                int whichRowClicked = getAbsoluteAdapterPosition();
+                ChatMessage selected = messagesList.get(whichRowClicked);
+                chatModel.selectedMessage.postValue(selected);
+
+
+                /** AlertDialog.Builder builder = new AlertDialog.Builder( ChatRoom.this );
                 builder.setMessage("Do you want to delete the message: "+ messageText.getText())
                         .setTitle("Question")
                 //Show "Yes / No" button, if click "No" nothing happened, while click "Yes" delete the message row and from database
@@ -227,8 +246,7 @@ public class ChatRoom extends AppCompatActivity {
 
                         } ))
                         //show the window:
-                        .create().show();
-
+                        .create().show();*/
             });
         }
     }
