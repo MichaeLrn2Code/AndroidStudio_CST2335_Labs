@@ -55,17 +55,6 @@ public class ChatRoom extends AppCompatActivity {
             chatModel = new ViewModelProvider(this).get(ChatRoomViewModel.class);
             messagesList = chatModel.messages.getValue();
 
-            chatModel.selectedMessage.observe(this,(newValue)->{
-                MessageDetailsFragment chatFragment = new MessageDetailsFragment(newValue);
-                getSupportFragmentManager()
-                .beginTransaction()
-                        .replace(R.id.fragmentLocation,chatFragment)
-                        .addToBackStack("Go Back")
-                        .commit();
-            });
-
-
-
             // Access the database:
             MessageDatabase db = Room.databaseBuilder(getApplicationContext(), MessageDatabase.class, "MyChatMessageDatabase").build(); //MyChatMessageDatabase is the actual file name in local device
             myDAO = db.getDAO();
@@ -192,6 +181,15 @@ public class ChatRoom extends AppCompatActivity {
          To specify a single column scrolling in a Vertical direction call:
          */
         binding.recycleView.setLayoutManager(new LinearLayoutManager(this));
+
+        chatModel.selectedMessage.observe(this,(newValue)->{
+            MessageDetailsFragment chatFragment = new MessageDetailsFragment(newValue);
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragmentLocation,chatFragment)
+                    .addToBackStack("Go Back")
+                    .commit();
+        });
     }
 
     //an object for representing everything that goes on a row in the list
