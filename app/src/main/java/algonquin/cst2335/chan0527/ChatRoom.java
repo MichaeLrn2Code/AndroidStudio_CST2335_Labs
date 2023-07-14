@@ -3,6 +3,7 @@ package algonquin.cst2335.chan0527;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
@@ -12,10 +13,13 @@ import androidx.room.Room;
 
 import android.graphics.ColorSpace;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -44,16 +48,24 @@ public class ChatRoom extends AppCompatActivity {
 
     RecyclerView recyclerView;
 
+    Toolbar myToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
             binding = ActivityChatRoomBinding.inflate(getLayoutInflater());
             setContentView(binding.getRoot());
+
+            // Initialize the components
             chatroomText = binding.chatroomText;
             recyclerView = binding.recycleView;
+            myToolbar = binding.myToolbar;
             chatModel = new ViewModelProvider(this).get(ChatRoomViewModel.class);
             messagesList = chatModel.messages.getValue();
+
+            // add tool bar, call onCreateOptionsMenu()
+            setSupportActionBar(myToolbar);
 
             // Access the database:
             MessageDatabase db = Room.databaseBuilder(getApplicationContext(), MessageDatabase.class, "MyChatMessageDatabase").build(); //MyChatMessageDatabase is the actual file name in local device
@@ -61,7 +73,6 @@ public class ChatRoom extends AppCompatActivity {
 
             if(messagesList == null){
             chatModel.messages.postValue(messagesList = new ArrayList<ChatMessage>());
-
                 // get all messages:
                 Executor thread = Executors.newSingleThreadExecutor();
                 thread.execute(()-> {
@@ -194,6 +205,8 @@ public class ChatRoom extends AppCompatActivity {
 
     //an object for representing everything that goes on a row in the list
     //maintain variables for what you want to set on each row in your list.
+    ChatMessage selected;
+    int whichRowClicked;
     public class MyRowHolder extends RecyclerView.ViewHolder{
 
         TextView messageText;
@@ -205,48 +218,63 @@ public class ChatRoom extends AppCompatActivity {
             timeText = itemView.findViewById(R.id.time);
 
             itemView.setOnClickListener(click->{
-                int whichRowClicked = getAbsoluteAdapterPosition();
-                ChatMessage selected = messagesList.get(whichRowClicked);
+                whichRowClicked = getAbsoluteAdapterPosition();
+                selected = messagesList.get(whichRowClicked);
                 chatModel.selectedMessage.postValue(selected);
-
-
-                /** AlertDialog.Builder builder = new AlertDialog.Builder( ChatRoom.this );
-                builder.setMessage("Do you want to delete the message: "+ messageText.getText())
-                        .setTitle("Question")
-                //Show "Yes / No" button, if click "No" nothing happened, while click "Yes" delete the message row and from database
-                        .setNegativeButton("No", ((dialog, clk) ->{} ))
-                        .setPositiveButton("Yes",((dialog, clk) ->{
-                            //delete this row
-                            int whichRowClicked = getAbsoluteAdapterPosition();
-                            ChatMessage cm = messagesList.get(whichRowClicked);
-
-                            //delete from database
-                            Executor thread = Executors.newSingleThreadExecutor();
-                            thread.execute(()->{
-                                // Background thread
-                                myDAO.deleteMessage(cm);
-                                messagesList.remove(whichRowClicked);
-
-                                runOnUiThread(()->
-                                        // On UI thread update the recyclerView
-                                        myAdapter.notifyItemRemoved(whichRowClicked));
-                            });
-
-                            Snackbar.make(recyclerView,"Message was deleted", Snackbar.LENGTH_LONG )
-                                    .setAction("Undo", clk2->{
-                                        //reinsert the message:
-                                        Executor thrd = Executors.newSingleThreadExecutor();
-                                        thrd.execute(()->{ myDAO.insertMessage(cm); });
-                                        messagesList.add(whichRowClicked,cm);
-                                        runOnUiThread(()->myAdapter.notifyDataSetChanged());
-                                    })
-                                    .show(); // show snackbar
-
-                        } ))
-                        //show the window:
-                        .create().show();*/
             });
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+
+        getMenuInflater().inflate(R.menu.my_menu,menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        String message = "Version 1.0, created by Wai Wai Chan";
+        if ( item.getItemId() == R.id.menu_delete){
+
+            AlertDialog.Builder builder = new AlertDialog.Builder( ChatRoom.this );
+             builder.setMessage("Do you want to delete the message? ")
+             .setTitle("Question")
+             //Show "Yes / No" button, if click "No" nothing happened, while click "Yes" delete the message row and from database
+             .setNegativeButton("No", ((dialog, clk) ->{} ))
+             .setPositiveButton("Yes",((dialog, clk) ->{
+
+             //delete from database
+             Executor thread = Executors.newSingleThreadExecutor();
+             thread.execute(()->{
+             // Background thread
+             myDAO.deleteMessage(selected);
+             messagesList.remove(whichRowClicked);
+
+             runOnUiThread(()->
+             // On UI thread update the recyclerView
+             myAdapter.notifyItemRemoved(whichRowClicked));
+             });
+
+             Snackbar.make(recyclerView,"Message was deleted", Snackbar.LENGTH_LONG )
+             .setAction("Undo", clk2->{
+             //reinsert the message:
+             Executor thrd = Executors.newSingleThreadExecutor();
+             thrd.execute(()->{ myDAO.insertMessage(selected); });
+             messagesList.add(whichRowClicked,selected);
+             runOnUiThread(()->myAdapter.notifyDataSetChanged());
+             })
+             .show(); // show snackbar
+
+             } ))
+             //show the window:
+             .create().show();
+        }
+        else if (item.getItemId() == R.id.menu_about){
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        }
+        return true;
+    }
 }
