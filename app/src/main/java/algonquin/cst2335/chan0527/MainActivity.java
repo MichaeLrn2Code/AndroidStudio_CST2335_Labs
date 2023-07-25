@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     EditText cityNameInput = null;
     Button forecastBtn = null;
     RequestQueue queue = null;
+    RequestQueue imgqueue = null;
 
     TextView temp;
     TextView maxTemp;
@@ -56,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     TextView humid;
     ImageView weatherIcon;
     TextView desc;
-    Bitmap image = null;
+    Bitmap image;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,25 +96,26 @@ public class MainActivity extends AppCompatActivity {
                             String iconName = obj.getString("icon");
                             String objDesc = obj.getString("description");
 
-
-                            String imageUrl = "http://openweathermap.org/img/w/"+iconName+".png";
+                            imgqueue = Volley.newRequestQueue(this);
+//                            String imageUrl = "http://openweathermap.org/img/w/"+iconName+".png";
                             String pathname = getFilesDir()+ "/" + iconName+ ".png";
                             File file = new File(pathname);
 
                             if (file.exists()){
                                 image = BitmapFactory.decodeFile(pathname);
+                                weatherIcon.setImageBitmap(image);
                             }else{
-                                ImageRequest imgReq = new ImageRequest(imageUrl, new Response.Listener<Bitmap>() {
+                                ImageRequest imgReq = new ImageRequest("https://openweathermap.org/img/w/"+iconName+".png", new Response.Listener<Bitmap>() {
                                     @Override
                                     public void onResponse(Bitmap bitmap) {
                                         try {
-                                            image = bitmap;
-                                            image.compress(Bitmap.CompressFormat.PNG, 100, MainActivity.this.openFileOutput(iconName+".png", Activity.MODE_PRIVATE));
+                                            weatherIcon.setImageBitmap(bitmap);
+                                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, MainActivity.this.openFileOutput(iconName+".png", Activity.MODE_PRIVATE));
                                         } catch (IOException e) {e.printStackTrace();}
                                     }
                                 }, 1024, 1024, ImageView.ScaleType.CENTER, null,
-                                    (error )->{ });
-                                queue.add(imgReq);
+                                    (error )->{ error.printStackTrace();});
+                                imgqueue.add(imgReq);
                             }
 
                             runOnUiThread(()->{
@@ -132,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
                                 desc.setText(objDesc);
                                 desc.setVisibility(View.VISIBLE);
 
-                                weatherIcon.setImageBitmap(image);
                                 weatherIcon.setVisibility(View.VISIBLE);
 
                             });
@@ -143,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                     },
-                    (error)->{ });
+                    (error)->{error.printStackTrace(); });
             queue.add(request);// send request to server
 
 
