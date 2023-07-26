@@ -58,8 +58,7 @@
     <ImageView
         android:id="@+id/icon"
         android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:visibility="invisible"/>
+        android:layout_height="300dp"/>
 
     <TextView
         android:id="@+id/description"

@@ -11,6 +11,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,7 +40,7 @@ import java.net.URLEncoder;
 import algonquin.cst2335.chan0527.databinding.ActivityMainBinding;
 
 /**
- * A page prompt user input password, and software validates the password.
+ * A page prompt user input City Name and display the weather information.
  * @author Wai Wai Chan
  * @version 1.0
  */
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         weatherIcon = binding.icon;
 
         queue = Volley.newRequestQueue(this);
+//        imgqueue = Volley.newRequestQueue(this);
 
         forecastBtn.setOnClickListener(clk->{
             cityName = cityNameInput.getText().toString();
@@ -96,28 +98,7 @@ public class MainActivity extends AppCompatActivity {
                             String iconName = obj.getString("icon");
                             String objDesc = obj.getString("description");
 
-                            imgqueue = Volley.newRequestQueue(this);
-//                            String imageUrl = "http://openweathermap.org/img/w/"+iconName+".png";
-                            String pathname = getFilesDir()+ "/" + iconName+ ".png";
-                            File file = new File(pathname);
-
-                            if (file.exists()){
-                                image = BitmapFactory.decodeFile(pathname);
-                                weatherIcon.setImageBitmap(image);
-                            }else{
-                                ImageRequest imgReq = new ImageRequest("https://openweathermap.org/img/w/"+iconName+".png", new Response.Listener<Bitmap>() {
-                                    @Override
-                                    public void onResponse(Bitmap bitmap) {
-                                        try {
-                                            weatherIcon.setImageBitmap(bitmap);
-                                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, MainActivity.this.openFileOutput(iconName+".png", Activity.MODE_PRIVATE));
-                                        } catch (IOException e) {e.printStackTrace();}
-                                    }
-                                }, 1024, 1024, ImageView.ScaleType.CENTER, null,
-                                    (error )->{ error.printStackTrace();});
-                                imgqueue.add(imgReq);
-                            }
-
+                            // Execute on UI thread to set and display the temperature and humidity
                             runOnUiThread(()->{
                                 temp.setText("The current temperature is " + current);
                                 temp.setVisibility(View.VISIBLE);
@@ -133,106 +114,57 @@ public class MainActivity extends AppCompatActivity {
 
                                 desc.setText(objDesc);
                                 desc.setVisibility(View.VISIBLE);
-
-                                weatherIcon.setVisibility(View.VISIBLE);
-
                             });
 
+                            String imageUrl = "https://openweathermap.org/img/w/"+ iconName+ ".png";
+                            String pathname = getFilesDir()+ "/" + iconName+ ".png";
+                            File file = new File(pathname);
+
+                            if (file.exists()){
+                                image = BitmapFactory.decodeFile(pathname);
+                                weatherIcon.setImageBitmap(image);
+                            }else{
+                                ImageRequest imgReq = new ImageRequest(imageUrl, new Response.Listener<Bitmap>() {
+                                    @Override
+                                    public void onResponse(Bitmap bitmap) {
+//                                            saveImageToFile(bitmap,iconName);
+                                            weatherIcon.setImageBitmap(bitmap);
+                                        try {
+                                            bitmap.compress(Bitmap.CompressFormat.PNG,100,MainActivity.this.openFileOutput(iconName+".png",Activity.MODE_PRIVATE));
+                                        } catch (FileNotFoundException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    }
+                                }, 1024, 1024, ImageView.ScaleType.CENTER, null,
+                                        (error )->{
+                                            Log.d("MainActivity","Image request failure");
+                                    error.printStackTrace();}
+                                );
+                                queue.add(imgReq);
+                            }
 
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }
-
                     },
-                    (error)->{error.printStackTrace(); });
+                    (error)->{
+                        Log.d("MainActivity","Weather request failure");
+                error.printStackTrace(); });
             queue.add(request);// send request to server
-
-
-
-
         });
     }
 
-    /**
-     * Function to validate the input password
-     * @param pwd the password user input
-     * @return true or false if input password passes the validation
-     */
-    boolean checkPasswordComplexity(String pwd){
-        boolean foundUpperCase, foundLowerCase, foundNumber, foundSpecial;
-        foundUpperCase = foundLowerCase = foundNumber = foundSpecial = false;
-
-        char[] pwdToChar = pwd.toCharArray();
-
-        for (char c:pwdToChar){
-            if (isDigit(c)){
-                foundNumber = true;
-            }
-
-            if (isUpperCase(c)){
-                foundUpperCase = true;
-            }
-
-            if (isLowerCase(c)){
-                foundLowerCase = true;
-            }
-
-            if (isSpecialCharacter(c)){
-                foundSpecial = true;
-            }
-        }
-
-        if(!foundUpperCase)
-        {
-            CharSequence warning = "Password missing an Upper Case Letter";
-            int duration = Toast.LENGTH_SHORT;
-            Toast.makeText(this,warning,duration ).show(); ;
-            return false;
-        }
-
-        else if( ! foundLowerCase)
-        {
-            CharSequence warning = "Password missing a Lower Case Letter";
-            int duration = Toast.LENGTH_SHORT;
-            Toast.makeText(this,warning,duration ).show();
-            return false;
-        }
-        else if( ! foundNumber) {
-            CharSequence warning = "Password missing a Number";
-            int duration = Toast.LENGTH_SHORT;
-            Toast.makeText(this,warning,duration ).show();
-            return false;
-        }
-        else if(! foundSpecial) {
-            CharSequence warning = "Password missing a Special Character";
-            int duration = Toast.LENGTH_SHORT;
-            Toast.makeText(this,warning,duration ).show();
-            return false;
-        }
-        else
-            return true;
-    }
-
-    /**
-     * Function to check if password contain a special character
-     * @param c the character in password
-     * @return true or false if password contain a special character
-     */
-    boolean isSpecialCharacter(char c) {
-        switch (c){
-            case '#':
-            case '?':
-            case '*':
-            case '$':
-            case '%':
-            case '&':
-            case '@':
-            case '!':
-            case '^':
-                return true;
-            default:
-                return false;
+    private void saveImageToFile(Bitmap bitmap, String iconName) {
+        FileOutputStream fOut = null;
+        try {
+            fOut = openFileOutput(iconName + ".png", Context.MODE_PRIVATE);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fOut);
+            fOut.flush();
+            fOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
-
 }
